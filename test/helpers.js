@@ -325,7 +325,7 @@ TestRunner.prototype.startProxyServerWithTableAndLatency = function (port, laten
 //
 TestRunner.prototype.startProxyServerWithForwarding = function (port, targetPort, host, options, callback) {
   var that = this, 
-      proxyServer = httpProxy.createServer(targetPort, host, merge({}, options, this.getOptions()));
+      proxyServer = httpProxy.createServer(host, targetPort, merge({}, options, this.getOptions()));
   
   proxyServer.listen(port, function () {
     that.testServers.push(proxyServer);
