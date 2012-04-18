@@ -82,8 +82,9 @@ TestRunner.prototype.assertProxied = function (host, proxyPort, port, requestPat
           return self.startTargetServer(port, output, function () {
             request(options, that.callback);
           });
+        } else {
+          request(options, this.callback);
         }
-        request(options, this.callback);
       }
 
       return createProxy ? createProxy(startTest) : startTest();
@@ -116,9 +117,9 @@ TestRunner.prototype.assertResponseCode = function (proxyPort, statusCode, creat
         return createProxy(function () {
           request(options, that.callback);
         });
+      } else {
+        request(options, this.callback);
       }
-
-      request(options, this.callback);
     }
   };
 
@@ -149,9 +150,9 @@ TestRunner.prototype.assertHeaders = function (proxyPort, headerName, createProx
         return createProxy(function () {
           request(options, that.callback);
         });
+      } else {
+        request(options, this.callback);
       }
-
-      request(options, this.callback);
     }
   };
 
