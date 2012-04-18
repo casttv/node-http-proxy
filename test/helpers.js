@@ -157,7 +157,7 @@ TestRunner.prototype.assertHeaders = function (proxyPort, headerName, createProx
 
   test[assertion] = function (err, res, body) {
     assert.isNull(err);
-    assert.isNotNull(res.headers[headerName]);
+    assert.isDefined(res.headers[headerName]);
   };
 
   return test;
