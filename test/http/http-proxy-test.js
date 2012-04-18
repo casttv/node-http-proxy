@@ -44,6 +44,14 @@ var badForwardOptions = {
   }
 };
 
+var responseHeadersTransformingOptions = {
+  responseHeadersTransform: function(headers) {
+    headers['x-foo'] = 'bar';
+
+    return headers;
+  }
+};
+
 var options = helpers.parseProtocol(),
     testName = [options.source.protocols.http, options.target.protocols.http].join('-to-'),
     runner = new helpers.TestRunner(options);
@@ -56,6 +64,9 @@ vows.describe('node-http-proxy/http-proxy/' + testName).addBatch({
       }),
       "and without a valid target server": runner.assertResponseCode(8082, 500, function (callback) {
         runner.startProxyServer(8082, 9000, 'localhost', callback);
+      }),
+      "and with a responseHeadersTransform set": runner.assertHeaders(2300, 2301, 'x-foo', function (callback) {
+        runner.startProxyServerWithOptions(2300, 2301, 'localhost', responseHeadersTransformingOptions, callback);
       })
     },
     "with latency": {
@@ -74,7 +85,7 @@ vows.describe('node-http-proxy/http-proxy/' + testName).addBatch({
         "and a valid target server": runner.assertProxied('localhost', 8120, 8121, false, false, function (callback) {
           runner.startProxyServerWithForwarding(8120, 8121, 'localhost', forwardOptions, callback);
         }),
-        "and also a valid target server": runner.assertHeaders(8122, "x-forwarded-for", function (callback) {
+        "and also a valid target server": runner.assertHeaders(8122, 8123, "x-forwarded-for", function (callback) {
           runner.startProxyServerWithForwarding(8122, 8123, 'localhost', forwardOptions, callback);
         }),
         "and without a valid forward server": runner.assertProxied('localhost', 8124, 8125, false, false, function (callback) {

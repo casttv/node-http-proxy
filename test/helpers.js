@@ -83,6 +83,7 @@ TestRunner.prototype.assertProxied = function (host, proxyPort, port, requestPat
             request(options, that.callback);
           });
         }
+
         request(options, this.callback);
       }
 
@@ -131,9 +132,11 @@ TestRunner.prototype.assertResponseCode = function (proxyPort, statusCode, creat
 };
 
 // A test helper to check and see if the http headers were set properly.
-TestRunner.prototype.assertHeaders = function (proxyPort, headerName, createProxy) {
+TestRunner.prototype.assertHeaders = function (proxyPort, targetPort, headerName, createProxy) {
   var assertion = "should receive http header \"" + headerName + "\"",
-      protocol = this.source.protocols.http;
+      protocol = this.source.protocols.http,
+      runner = this,
+      responseBody = 'target server for '+headerName+' header test';
 
   var test = {
     topic: function () {
@@ -145,19 +148,20 @@ TestRunner.prototype.assertHeaders = function (proxyPort, headerName, createProx
         }
       };
 
-      if (createProxy) {
-        return createProxy(function () {
+      var startTest = function() {
+        return runner.startTargetServer(targetPort, responseBody, function() {
           request(options, that.callback);
         });
-      }
+      };
 
-      request(options, this.callback);
+      return createProxy ? createProxy(startTest) : startTest();
     }
   };
 
   test[assertion] = function (err, res, body) {
     assert.isNull(err);
     assert.isDefined(res.headers[headerName]);
+    assert.equal(body, responseBody);
   };
 
   return test;
@@ -241,6 +245,19 @@ TestRunner.prototype.webSocketTestWithTable = function (options) {
 TestRunner.prototype.startProxyServer = function (port, targetPort, host, callback) {
   var that = this,
       proxyServer = httpProxy.createServer(host, targetPort, this.getOptions());
+
+  proxyServer.listen(port, function () {
+    that.testServers.push(proxyServer);
+    callback(null, proxyServer);
+  });
+};
+
+//
+// Creates the reverse proxy server with custom options
+//
+TestRunner.prototype.startProxyServerWithOptions = function (port, targetPort, targetHost, options, callback) {
+  var that = this,
+      proxyServer = httpProxy.createServer(targetHost, targetPort, options);
 
   proxyServer.listen(port, function () {
     that.testServers.push(proxyServer);
